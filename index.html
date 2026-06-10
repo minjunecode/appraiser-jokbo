@@ -968,58 +968,68 @@ const LEC_SIM={};
 function curSimPct(lec){ return LEC_SIM.hasOwnProperty(lec)?LEC_SIM[lec]:null; }
 function renderProgress(){
   const pv=document.getElementById('progress-view'); if(!pv) return;
-  // 절분류된 과목(회계학)이 선택되면 절(소주제)별, 아니면 과목별 집계. 현재 사용자(savedAnswers) 기준.
-  const byJeol = subjectHasJeol(filterLec);
-  const agg={};
+  // 과목별 집계. 절분류된 과목(회계학)은 절(소주제) 단위로 펼쳐서 표시. 현재 사용자(savedAnswers) 기준.
+  const subjOrder=(FULL_LEC.length?FULL_LEC.map(function(r){return r.key;}):[...new Set(QUESTIONS.map(function(q){return q.curr_lec_no;}))]);
+  const showSubjects=(filterLec==='all')?subjOrder:subjOrder.filter(function(s){return s===filterLec;});
+  const aggSub={}, aggJeol={};
   QUESTIONS.forEach(function(q){
-    let k;
-    if(byJeol){ if(q.curr_lec_no!==filterLec || !q.subtopic) return; k=q.subtopic; }
-    else { k=q.curr_lec_no||'기타'; }
-    if(!agg[k]) agg[k]={total:0,done:0};
-    agg[k].total++;
-    const sa=savedAnswers[q.id];
-    if(sa&&sa.sel&&sa.sel.length) agg[k].done++;
+    const subj=q.curr_lec_no||'기타';
+    if(!aggSub[subj]) aggSub[subj]={total:0,done:0};
+    aggSub[subj].total++;
+    const sa=savedAnswers[q.id]; const done=!!(sa&&sa.sel&&sa.sel.length);
+    if(done) aggSub[subj].done++;
+    if(subjectHasJeol(subj)&&q.subtopic){
+      if(!aggJeol[subj]) aggJeol[subj]={};
+      if(!aggJeol[subj][q.subtopic]) aggJeol[subj][q.subtopic]={total:0,done:0};
+      aggJeol[subj][q.subtopic].total++;
+      if(done) aggJeol[subj][q.subtopic].done++;
+    }
   });
-  let roster;
-  if(byJeol){
-    roster=(typeof JEOL_ORDER!=='undefined'?JEOL_ORDER:[]).filter(function(c){return agg[c];}).map(function(c){return {key:c, label:(JEOL_NAME[c]||c)};});
-  } else {
-    roster=(FULL_LEC.length?FULL_LEC:lecRoster());
+  const memoDisabled=CURRENT_USER?'':'disabled';
+  const memoPlaceholder=CURRENT_USER?'메모…':'사용자 선택 후 작성';
+  function pctFull(a){ return {pct:a.total?Math.round(a.done/a.total*100):0, full:(a.total>0&&a.done===a.total)}; }
+  function leafRow(key,label,a,indent){
+    const b=pctFull(a); const memoVal=curLecMemo(key);
+    return '<tr>'
+      +'<td class="prog-lec"'+(indent?' style="padding-left:22px;font-weight:500;"':'')+'>'+(indent?'└ ':'')+esc(label)+'</td>'
+      +'<td class="prog-num">'+a.total+'</td>'
+      +'<td class="prog-num'+(b.full?' prog-done-full':'')+'">'+a.done+'</td>'
+      +'<td><div class="prog-cell-prog"><div class="prog-bar'+(b.full?' full':'')+'"><span style="width:'+b.pct+'%"></span></div><span class="prog-pct">'+b.pct+'%</span></div></td>'
+      +'<td style="min-width:160px;"><input class="prog-memo-input" id="lmemo-input-'+esc(key)+'" value="'+esc(memoVal)+'" placeholder="'+esc(memoPlaceholder)+'" '+memoDisabled+' onblur="saveLecMemo(\''+esc(key)+'\',this)"><span class="prog-memo-saved" id="lmemo-ind-'+esc(key)+'"></span></td>'
+      +'</tr>';
   }
   let totT=0,totD=0,rows='';
-  roster.forEach(function(r){
-    const a=agg[r.key]||{total:0,done:0};
-    totT+=a.total; totD+=a.done;
-    const pct=a.total?Math.round(a.done/a.total*100):0;
-    const full=(a.total>0&&a.done===a.total);
-    const prof=curProf(r.key);
-    const simP=curSimPct(r.key);
-    const simCls=(simP==null)?'na':(simP>=70?'hi':(simP>=40?'mid':'lo'));
-    const memoVal = curLecMemo(r.key);
-    const memoDisabled = CURRENT_USER ? '' : 'disabled';
-    const memoPlaceholder = CURRENT_USER ? '메모…' : '사용자 선택 후 작성';
-    rows+='<tr>'
-      +'<td class="prog-lec">'+esc(r.label)+'</td>'
-      +'<td class="prog-num">'+a.total+'</td>'
-      +'<td class="prog-num'+(full?' prog-done-full':'')+'">'+a.done+'</td>'
-      +'<td><div class="prog-cell-prog"><div class="prog-bar'+(full?' full':'')+'"><span style="width:'+pct+'%"></span></div><span class="prog-pct">'+pct+'%</span></div></td>'
-      +'<td style="min-width:160px;"><input class="prog-memo-input" id="lmemo-input-'+esc(r.key)+'" value="'+esc(memoVal)+'" placeholder="'+esc(memoPlaceholder)+'" '+memoDisabled+' onblur="saveLecMemo(\''+esc(r.key)+'\',this)"><span class="prog-memo-saved" id="lmemo-ind-'+esc(r.key)+'"></span></td>'
-      +'</tr>';
+  showSubjects.forEach(function(subj){
+    const sa=aggSub[subj]||{total:0,done:0};
+    totT+=sa.total; totD+=sa.done;
+    if(subjectHasJeol(subj)){
+      const b=pctFull(sa); const gs='background:#eef2fb;font-weight:800;';
+      rows+='<tr class="prog-group">'
+        +'<td class="prog-lec" style="'+gs+'">'+esc(subj)+' <span style="font-weight:600;color:var(--text-muted);">· 절별</span></td>'
+        +'<td class="prog-num" style="'+gs+'">'+sa.total+'</td>'
+        +'<td class="prog-num" style="'+gs+'">'+sa.done+'</td>'
+        +'<td style="'+gs+'"><div class="prog-cell-prog"><div class="prog-bar'+(b.full?' full':'')+'"><span style="width:'+b.pct+'%"></span></div><span class="prog-pct">'+b.pct+'%</span></div></td>'
+        +'<td style="'+gs+'"></td></tr>';
+      const jm=aggJeol[subj]||{};
+      (typeof JEOL_ORDER!=='undefined'?JEOL_ORDER:[]).forEach(function(code){
+        if(jm[code]) rows+=leafRow(code,(JEOL_NAME[code]||code),jm[code],true);
+      });
+    } else {
+      rows+=leafRow(subj,subj,sa,false);
+    }
   });
   const totPct=totT?Math.round(totD/totT*100):0;
   const who=CURRENT_USER?esc(CURRENT_USER):'(사용자 미선택)';
-  const termName= filterTerm==='1'?'대사와 내분비 1차': filterTerm==='2'?'대사와 내분비 2차':'전체 과목';
   pv.innerHTML=
     '<div class="prog-title">📊 풀이 진척도 확인</div>'
-    +'<div class="prog-sub">현재 사용자 <b>'+who+'</b> · '+(byJeol?('<b>'+esc(filterLec)+'</b> 절(소주제)별 집계입니다. (절 = 신은미 회계학 기본서 목차 단위)'):'과목별 통합 집계입니다. (회계학은 우측 상단에서 회계학 선택 시 절별로 표시됩니다)')+'</div>'
+    +'<div class="prog-sub">현재 사용자 <b>'+who+'</b> · 과목별 집계입니다. 절분류된 과목(<b>회계학</b>)은 <b>절(소주제)</b> 단위로 펼쳐집니다. (절 = 신은미 회계학 기본서 목차 / 우측 상단에서 특정 과목만 선택해 볼 수도 있습니다)</div>'
     +'<div class="prog-summary">'
       +'<div class="prog-sum-chip">총 '+totT+'문항</div>'
       +'<div class="prog-sum-chip">푼 문항 '+totD+'개</div>'
       +'<div class="prog-sum-chip">전체 진척률 '+totPct+'%</div>'
-      +'<div class="prog-sum-chip">'+(byJeol?'절 ':'과목 ')+roster.length+'개</div>'
     +'</div>'
     +'<div class="prog-table-wrap"><table class="prog-table"><thead><tr>'
-      +'<th>'+(byJeol?'절(소주제)':'과목·회차')+'</th><th style="text-align:center;">총</th><th style="text-align:center;">푼</th><th>진척</th><th>메모</th>'
+      +'<th>과목 · 절(소주제)</th><th style="text-align:center;">총</th><th style="text-align:center;">푼</th><th>진척</th><th>메모</th>'
     +'</tr></thead><tbody>'+rows+'</tbody></table></div>';
 }
 async function saveMetaBlur(kind, lec, el){
