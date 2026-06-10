@@ -19,6 +19,7 @@
   --star-color:#e8a020;
   --radius-sm:6px;--radius-md:10px;--radius-lg:14px;
   --header-h:52px;
+  --tabs-h:47px;
   --rail-width:268px;
 }
 *{box-sizing:border-box;margin:0;padding:0;}
@@ -49,7 +50,7 @@ header h1{font-size:1rem;font-weight:700;letter-spacing:-0.02em;line-height:1.2;
 #sidebar{
   width:var(--sidebar-width);min-width:var(--sidebar-width);
   background:var(--sidebar-bg);border-right:1px solid var(--sidebar-border);
-  position:sticky;top:var(--header-h);height:calc(100vh - var(--header-h));
+  position:sticky;top:calc(var(--header-h) + var(--tabs-h));height:calc(100vh - var(--header-h) - var(--tabs-h));
   overflow-y:auto;flex-shrink:0;display:flex;flex-direction:column;
   scrollbar-width:thin;scrollbar-color:#d0d8e4 transparent;
 }
@@ -474,7 +475,7 @@ header h1{font-size:1rem;font-weight:700;letter-spacing:-0.02em;line-height:1.2;
 /* ── RIGHT RAIL ── */
 #right-rail{
   width:var(--rail-width);min-width:var(--rail-width);flex-shrink:0;
-  position:sticky;top:var(--header-h);height:calc(100vh - var(--header-h));
+  position:sticky;top:calc(var(--header-h) + var(--tabs-h));height:calc(100vh - var(--header-h) - var(--tabs-h));
   overflow-y:auto;display:flex;flex-direction:column;gap:0;
   background:var(--sidebar-bg);border-left:1px solid var(--sidebar-border);
   scrollbar-width:thin;scrollbar-color:#d0d8e4 transparent;
@@ -520,6 +521,11 @@ header h1{font-size:1rem;font-weight:700;letter-spacing:-0.02em;line-height:1.2;
 /* 감정평가 Quick계산 */
 .qcalc-section{margin-top:8px;}
 .qcalc-label{font-size:0.63rem;font-weight:700;letter-spacing:0.07em;text-transform:uppercase;color:var(--text-muted);margin-bottom:6px;}
+.qcalc-toggle{width:100%;display:flex;align-items:center;justify-content:space-between;gap:6px;padding:8px 10px;margin-top:4px;border:1.5px solid var(--card-border);border-radius:var(--radius-sm);background:var(--card-bg);color:var(--text-secondary);font-size:0.74rem;font-weight:700;font-family:var(--font-stack);cursor:pointer;transition:all 0.12s;}
+.qcalc-toggle:hover{border-color:var(--accent);color:var(--accent);}
+.qcalc-toggle[aria-expanded="true"]{background:var(--accent-light);border-color:var(--accent);color:var(--accent);}
+#qcalc-caret{transition:transform 0.15s;}
+.qcalc-toggle[aria-expanded="true"] #qcalc-caret{transform:rotate(180deg);}
 .qcalc-row{display:flex;flex-direction:column;gap:5px;margin-bottom:7px;padding:8px 9px;background:var(--card-bg);border:1px solid var(--card-border);border-radius:var(--radius-sm);}
 .qcalc-row-title{font-size:0.67rem;font-weight:700;color:var(--chip-text);margin-bottom:4px;}
 .qcalc-inputs{display:flex;gap:4px;flex-wrap:wrap;align-items:center;}
@@ -711,7 +717,8 @@ header h1{font-size:1rem;font-weight:700;letter-spacing:-0.02em;line-height:1.2;
 
       <!-- 감정평가 빠른 계산 -->
       <div class="qcalc-section">
-        <div class="qcalc-label">감정평가 빠른 계산</div>
+        <button class="qcalc-toggle" onclick="toggleQuickCalc()" aria-expanded="false"><span>🧮 감정평가 빠른 계산</span><span id="qcalc-caret">▾</span></button>
+        <div id="qcalc-body" style="display:none;">
 
         <!-- 현재가치 (1+r)^-n -->
         <div class="qcalc-row">
@@ -795,6 +802,7 @@ header h1{font-size:1rem;font-weight:700;letter-spacing:-0.02em;line-height:1.2;
           </div>
           <div class="qcalc-result" id="qc-dep-res"></div>
         </div>
+        </div><!-- /#qcalc-body -->
       </div>
     </div>
 
@@ -2298,6 +2306,14 @@ function qcArea(dir) {
   el.classList.add('show');
 }
 
+function toggleQuickCalc(){
+  const body=document.getElementById('qcalc-body');
+  const btn=document.querySelector('.qcalc-toggle');
+  if(!body) return;
+  const open=body.style.display==='none';
+  body.style.display=open?'':'none';
+  if(btn) btn.setAttribute('aria-expanded', open?'true':'false');
+}
 function qcDepreciation() {
   const cost = parseFloat(document.getElementById('qc-dep-cost').value);
   const resid = parseFloat(document.getElementById('qc-dep-resid').value) || 0;
