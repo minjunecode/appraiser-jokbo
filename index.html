@@ -456,10 +456,8 @@ header h1{font-size:1rem;font-weight:700;letter-spacing:-0.02em;line-height:1.2;
     <div class="header-sub">감정평가사 1차 기출 · 2008~2026</div>
   </div>
   <div class="header-right">
-    <select id="term-select" class="hdr-select" onchange="setTerm(this.value)" title="과목" aria-label="과목" style="display:none">
+    <select id="subject-select" class="hdr-select" onchange="setLecture(this.value)" title="과목 선택" aria-label="과목 선택">
       <option value="all">전체 과목</option>
-      <option value="1">대사와 내분비 1차</option>
-      <option value="2">대사와 내분비 2차</option>
     </select>
     <button id="user-switch-btn" class="hdr-user-btn" onclick="showIdentityPrompt()" title="사용자 변경" aria-label="사용자 변경">👤 <span id="hdr-user">선택</span> ▾</button>
     <button id="mobile-sidebar-btn" onclick="toggleSidebar()">☰</button>
@@ -482,8 +480,8 @@ header h1{font-size:1rem;font-weight:700;letter-spacing:-0.02em;line-height:1.2;
         <span class="filter-label">연도</span>
         <div class="year-btns" id="year-btns"><button class="yr-btn active" data-year="all" onclick="setYear('all')">전체</button></div>
       </div>
-      <!-- LECTURE FILTER (with lecture number prefix) -->
-      <div class="filter-section">
+      <!-- 과목 필터는 헤더 우측(#subject-select)으로 이동. 사이드바 셀렉트는 호환 위해 숨겨 유지 -->
+      <div class="filter-section" style="display:none">
         <span class="filter-label">과목</span>
         <select id="lec-select" onchange="setLecture(this.value)"><option value="all">전체 과목</option><option value="민법">민법</option></select>
       </div>
@@ -726,7 +724,10 @@ function setYear(y) {
 }
 function setLecture(v) {
   filterLec=v;
+  const hdr=document.getElementById('subject-select'); if(hdr&&hdr.value!==v) hdr.value=v;
+  const sel=document.getElementById('lec-select'); if(sel&&sel.value!==v) sel.value=v;
   applyFilters();
+  const pv=document.getElementById('progress-view'); if(pv && !pv.hidden) renderProgress();
 }
 function setScrapOnly(v) {
   filterScrapOnly=v;
@@ -743,17 +744,16 @@ function setTerm(v){
   if(pv && !pv.hidden) renderProgress();
 }
 function rebuildLecOptions(){
-  const sel=document.getElementById('lec-select'); if(!sel||!FULL_LEC.length) return;
-  let html='<option value="all">전체 강의</option>';
+  if(!FULL_LEC.length) return;
+  // 과목 셀렉터는 헤더(#subject-select)로 이동. 사이드바 #lec-select 는 호환 유지(숨김).
+  let html='<option value="all">전체 과목</option>';
   FULL_LEC.forEach(function(r){
-    const t=lecTerm(r.key);
-    if(filterTerm==='all' || t===0 || String(t)===filterTerm){
-      html+='<option value="'+r.key+'">'+esc(r.label)+'</option>';
-    }
+    html+='<option value="'+r.key+'">'+esc(r.label)+'</option>';
   });
-  sel.innerHTML=html;
-  sel.value=filterLec;
-  if(sel.value!==filterLec){ filterLec='all'; sel.value='all'; }
+  const hdr=document.getElementById('subject-select');
+  if(hdr){ hdr.innerHTML=html; hdr.value=filterLec; if(hdr.value!==filterLec){ filterLec='all'; hdr.value='all'; } }
+  const sel=document.getElementById('lec-select');
+  if(sel){ sel.innerHTML=html; sel.value=filterLec; }
 }
 
 // ═══════════════════════════════════════════════════
