@@ -871,8 +871,8 @@ function openQFixForm(qid){
       + '<button class="qfix-restore-btn" onclick="restoreQFix(\''+qid+'\')">원본 복원</button>'
     + '</div>';
   // insert after the qfix-btn row (상단 항상노출 행 우선, 없으면 해설탭 행)
-  const btnRow = document.getElementById('qfixtoprow-'+qid) || document.getElementById('qfixbtnrow-'+qid);
-  if(btnRow) btnRow.insertAdjacentElement('afterend', div);
+  const anchor = document.getElementById('qfixanchor-'+qid) || document.getElementById('qfixtoprow-'+qid) || document.getElementById('qfixbtnrow-'+qid);
+  if(anchor) anchor.insertAdjacentElement('afterend', div);
 }
 
 async function saveQFix(qid){
@@ -1145,6 +1145,9 @@ function buildCardHtml(q,idx) {
   // 누가 스크랩했는지 배지(나 외 사용자)
   const others=(allScraps[q.id]||[]).filter(function(u){return u!==CURRENT_USER;});
   const whoBadges=others.map(function(u){return '<span class="scrap-who">⭐'+esc(u)+'</span>';}).join('');
+  // 문항 수정(qfix) — 헤더 우측에 배치(별도 줄 없이 항상 노출)
+  const isFixedHdr=!!(shared['__qfix__'+q.id]&&(shared['__qfix__'+q.id].expl||'').trim());
+  const fixBtnHdr=(isFixedHdr?'<span class="qfix-badge">✎ 수정됨</span>':'')+'<button class="qfix-btn" onclick="openQFixForm(\''+q.id+'\')" title="문항(본문·보기·정답) 수정">✏️ 문항 수정</button>';
 
   // header
   const header=`<div class="q-card-header">
@@ -1158,7 +1161,7 @@ function buildCardHtml(q,idx) {
       ${MISCLASS[q.id]?`<span class="meta-tag tag-misclass" title="다른 강의(강${MISCLASS[q.id]}) 내용일 가능성이 있는 문항입니다. 지금 강의에서 배우지 않은 내용이면 오분류입니다.">⚠ 오분류 의심 → 강${MISCLASS[q.id]}?</span>`:''}
       ${MISIMG[q.id]?`<span class="meta-tag tag-misimg" title="${esc(MISIMG[q.id])}">⚠ 이미지 오류 의심</span>`:''}
     </div>
-    <div class="scrap-area">${whoBadges}${starBtn}</div>
+    <div class="scrap-area">${whoBadges}${fixBtnHdr}${starBtn}</div>
   </div>`;
 
   const misImgNote=MISIMG[q.id]?`<div class="misclass-note" style="background:#fdeeee;border-color:#e0a8a8;color:#9a3030;">⚠ <b>이미지 오류 의심</b> — ${esc(MISIMG[q.id])}</div>`:'';
@@ -1206,13 +1209,9 @@ function buildCardHtml(q,idx) {
   // explanation — only visible after answering
   const expl=buildExplHtml(q.id, answered);
 
-  // 문항 수정 버튼(항상 노출, 카드 상단) — 파싱오류 교정용
-  const isFixedTop=!!(shared['__qfix__'+q.id]&&(shared['__qfix__'+q.id].expl||'').trim());
-  const qfixTopRow='<div id="qfixtoprow-'+q.id+'" style="display:flex;justify-content:flex-end;align-items:center;margin-bottom:4px;gap:4px;">'+(isFixedTop?'<span class="qfix-badge">✎ 수정됨</span>':'')+'<button class="qfix-btn" onclick="openQFixForm(\''+q.id+'\')">✏️ 문항 수정</button></div>';
-
   return `${header}
   <div class="q-card-body">
-    ${qfixTopRow}${stem}${misNote}${misImgNote}${tbl}${img}${choices}${pendingNote}${expl}
+    ${stem}<div id="qfixanchor-${q.id}"></div>${misNote}${misImgNote}${tbl}${img}${choices}${pendingNote}${expl}
   </div>`;
 }
 
@@ -1238,7 +1237,6 @@ function buildExplHtml(qid, answered) {
   const fixedBadge = isFixed ? '<span class="qfix-badge">✎ 수정됨</span>' : '';
   const explPane=
     '<div class="tab-pane" id="pane-expl-'+qid+'">'
-    + '<div style="display:flex;justify-content:flex-end;align-items:center;margin-bottom:6px;gap:4px;"><button class="expl-edit-btn" id="editbtn-expl-'+qid+'" onclick="startEdit(\''+qid+'\',\'expl\')">✏️ 해설 수정</button></div>'
     + buildViewHtml(qid,'expl')
     + '<textarea class="expl-textarea" id="ta-expl-'+qid+'" placeholder="해설을 입력하세요..."></textarea>'
     + '<button class="expl-save-btn" id="save-expl-'+qid+'" onclick="saveEdit(\''+qid+'\',\'expl\')">저장</button>'
@@ -1254,7 +1252,7 @@ function buildExplHtml(qid, answered) {
     + '</div>';
   };
   return '<div class="expl-section'+visibleCls+'" id="expl-section-'+qid+'">'
-    + '<div class="tab-bar">'+tabs+pill+'</div>'
+    + '<div class="tab-bar">'+tabs+'<button class="expl-edit-btn" id="editbtn-expl-'+qid+'" onclick="startEdit(\''+qid+'\',\'expl\')" style="margin-left:auto;">✏️ 해설 수정</button>'+pill+'</div>'
     + explPane + memoPane('memo2','✍️ 정아라 메모')
     + '</div>';
 }
