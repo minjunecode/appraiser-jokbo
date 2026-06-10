@@ -377,7 +377,13 @@ header h1{font-size:1rem;font-weight:700;letter-spacing:-0.02em;line-height:1.2;
 .prog-memo-input{width:100%;min-width:120px;padding:4px 7px;border:1.5px solid var(--card-border);border-radius:var(--radius-sm);font-size:0.78rem;font-family:var(--font-stack);color:var(--text-primary);background:#fff;outline:none;transition:border-color 0.12s;}
 .prog-memo-input:focus{border-color:var(--accent);}
 .prog-memo-input:disabled{background:#f5f3ef;color:var(--text-muted);cursor:not-allowed;}
-.prog-memo-saved{font-size:0.7rem;color:var(--correct);margin-left:4px;}
+.prog-memo-saved{font-size:0.7rem;color:var(--correct);}
+.field-btns{display:flex;gap:6px;}
+.field-btn{flex:1;padding:7px 6px;border:1.5px solid var(--card-border);border-radius:var(--radius-sm);background:var(--card-bg);color:var(--text-secondary);font-size:0.76rem;font-weight:700;font-family:var(--font-stack);cursor:pointer;transition:all 0.12s;}
+.field-btn:hover{border-color:var(--accent);color:var(--accent);}
+.field-btn.active{background:var(--accent);border-color:var(--accent);color:#fff;}
+.prog-fieldbar td{background:linear-gradient(135deg,#3a4a7a,#5566a0);color:#fff;font-weight:800;font-size:0.86rem;padding:8px 12px;letter-spacing:0.03em;}
+.prog-chapbar td{background:#e8edf7;color:#3a4a7a;font-weight:700;font-size:0.8rem;padding:5px 12px 5px 22px;}
 
 /* MOBILE */
 @media(max-width:767px){
@@ -593,6 +599,14 @@ header h1{font-size:1rem;font-weight:700;letter-spacing:-0.02em;line-height:1.2;
       <div class="filter-section" style="display:none">
         <span class="filter-label">과목</span>
         <select id="lec-select" onchange="setLecture(this.value)"><option value="all">전체 과목</option><option value="민법">민법</option></select>
+      </div>
+      <!-- 분야(재무회계/원가회계) 버튼 — 절분류된 과목(회계학)에서만 노출 -->
+      <div class="filter-section" id="field-filter-section" style="display:none">
+        <span class="filter-label">분야</span>
+        <div class="field-btns">
+          <button class="field-btn" id="field-btn-재무" onclick="setField('재무')">재무회계</button>
+          <button class="field-btn" id="field-btn-원가" onclick="setField('원가')">원가관리회계</button>
+        </div>
       </div>
       <!-- 절(소주제) 필터 — 절분류된 과목(회계학)에서만 노출. 절=대사내분비의 '강' 역할 -->
       <div class="filter-section" id="sub-filter-section" style="display:none">
@@ -814,6 +828,8 @@ let filteredQ = [];
 let filterYear = 'all';
 let filterLec = 'all';
 let filterSub = 'all';    // 소주제(절) 필터 — 회계학 등 절분류된 과목에서만 사용
+let filterField = 'all';  // 분야 필터 — '재무'(재무회계)/'원가'(원가관리회계)/'all'
+function jeolField(code){ if(!code) return ''; if(code.indexOf('재무')===0) return '재무'; if(code.indexOf('원가')===0) return '원가'; return 'etc'; }
 let filterTerm = 'all';   // 'all' | '1'(대사와 내분비 1차, ~34강) | '2'(2차, 40강~)
 let FULL_LEC = [];        // 전체 강의 로스터(드롭다운 재구성·진척도용) — init 에서 캡처
 let filterScrapOnly = false;
@@ -887,7 +903,7 @@ try { hideAnswers = localStorage.getItem(LS_HIDE)==='1'; } catch(e){}
 try { const r=localStorage.getItem(LS_SHARED); if(r) shared=JSON.parse(r); } catch(e){}
 try {
   const rf=localStorage.getItem(LS_FILTER);
-  if(rf){ const f=JSON.parse(rf); filterYear=f.year||'all'; filterLec=f.lec||'all'; filterSub=f.sub||'all'; filterTerm=f.term||'all'; filterScrapOnly=!!f.scrap; }
+  if(rf){ const f=JSON.parse(rf); filterYear=f.year||'all'; filterLec=f.lec||'all'; filterSub=f.sub||'all'; filterField=f.field||'all'; filterTerm=f.term||'all'; filterScrapOnly=!!f.scrap; }
 } catch(e){}
 
 // ═══════════════════════════════════════════════════
@@ -926,7 +942,7 @@ function saveScraps() { try{localStorage.setItem(LS_SCRAP,JSON.stringify(savedSc
 function saveExpl()   { try{localStorage.setItem(LS_EXPL,JSON.stringify(savedExpl));}catch(e){} }
 function saveExplHist(){ try{localStorage.setItem(LS_EXPLHIST,JSON.stringify(explHist));}catch(e){} }
 function saveImages() { try{localStorage.setItem(LS_EXPLIMG,JSON.stringify(savedImages)); return true;}catch(e){ alert('브라우저 저장 공간이 부족합니다. 일부 이미지를 삭제하거나 더 작은 이미지를 사용해 주세요.'); return false; } }
-function saveFilter() { try{localStorage.setItem(LS_FILTER,JSON.stringify({year:filterYear,lec:filterLec,sub:filterSub,term:filterTerm,scrap:filterScrapOnly}))||false;}catch(e){} }
+function saveFilter() { try{localStorage.setItem(LS_FILTER,JSON.stringify({year:filterYear,lec:filterLec,sub:filterSub,field:filterField,term:filterTerm,scrap:filterScrapOnly}))||false;}catch(e){} }
 
 // ═══════════════════════════════════════════════════
 // SHUFFLE
@@ -972,7 +988,8 @@ function applyFilters(skipShuffle) {
     const termOk = filterTerm==='all' || t===0 || String(t)===filterTerm;
     const scrapOk = !filterScrapOnly || anyScrap(q.id);
     const subOk = filterSub==='all' || q.subtopic===filterSub;
-    return yearOk && lecOk && termOk && scrapOk && subOk;
+    const fieldOk = filterField==='all' || (q.subtopic && jeolField(q.subtopic)===filterField);
+    return yearOk && lecOk && termOk && scrapOk && subOk && fieldOk;
   });
   if(isShuffled && !skipShuffle) {
     filteredQ = shuffleArray(filteredQ);
@@ -991,7 +1008,7 @@ function setYear(y) {
 }
 function setLecture(v) {
   filterLec=v;
-  filterSub='all';   // 과목 바뀌면 절 필터 초기화
+  filterSub='all'; filterField='all';   // 과목 바뀌면 절·분야 필터 초기화
   const hdr=document.getElementById('subject-select'); if(hdr&&hdr.value!==v) hdr.value=v;
   const sel=document.getElementById('lec-select'); if(sel&&sel.value!==v) sel.value=v;
   rebuildSubOptions();
@@ -1004,17 +1021,26 @@ function setSub(v){
   applyFilters();
   const pv=document.getElementById('progress-view'); if(pv && !pv.hidden) renderProgress();
 }
+function setField(f){
+  filterField=(filterField===f)?'all':f;   // 활성 버튼 다시 누르면 전체
+  filterSub='all';                          // 분야 바뀌면 절 초기화
+  rebuildSubOptions();
+  applyFilters();
+  const pv=document.getElementById('progress-view'); if(pv && !pv.hidden) renderProgress();
+}
 // 절(소주제) 필터 — 절분류된 과목(현재 회계학)에서만 노출. 절=대사내분비의 '강' 역할.
 function subjectHasJeol(subj){ return subj==='회계학'; }
 function rebuildSubOptions(){
   const sec=document.getElementById('sub-filter-section');
+  const fsec=document.getElementById('field-filter-section');
   const sel=document.getElementById('sub-select');
   if(!sec||!sel) return;
-  if(!subjectHasJeol(filterLec)){ sec.style.display='none'; filterSub='all'; sel.value='all'; return; }
-  // 현재 과목 문항에서 절별 카운트
+  if(!subjectHasJeol(filterLec)){ sec.style.display='none'; if(fsec) fsec.style.display='none'; filterSub='all'; filterField='all'; sel.value='all'; return; }
+  if(fsec) fsec.style.display='';
+  ['재무','원가'].forEach(function(f){ var bt=document.getElementById('field-btn-'+f); if(bt) bt.classList.toggle('active', filterField===f); });
   const cnt={};
-  QUESTIONS.forEach(function(q){ if(q.curr_lec_no===filterLec && q.subtopic){ cnt[q.subtopic]=(cnt[q.subtopic]||0)+1; } });
-  let html='<option value="all">전체 절</option>';
+  QUESTIONS.forEach(function(q){ if(q.curr_lec_no===filterLec && q.subtopic){ if(filterField!=='all' && jeolField(q.subtopic)!==filterField) return; cnt[q.subtopic]=(cnt[q.subtopic]||0)+1; } });
+  let html='<option value="all">전체 절'+(filterField!=='all'?' ('+(filterField==='재무'?'재무회계':'원가관리회계')+')':'')+'</option>';
   (typeof JEOL_ORDER!=='undefined'?JEOL_ORDER:[]).forEach(function(code){
     if(cnt[code]){ var lbl=((typeof JEOL_NUM!=='undefined'&&JEOL_NUM[code])?JEOL_NUM[code]+' ':'')+(JEOL_NAME[code]||code); html+='<option value="'+code+'">'+esc(lbl)+' ('+cnt[code]+')</option>'; }
   });
@@ -1315,7 +1341,7 @@ function renderProgress(){
       +'<td class="prog-num'+(b.full?' prog-done-full':'')+'">'+a.done+'</td>'
       +'<td><div class="prog-cell-prog"><div class="prog-bar'+(b.full?' full':'')+'"><span style="width:'+b.pct+'%"></span></div><span class="prog-pct">'+b.pct+'%</span></div></td>'
       +'<td class="prog-num" style="white-space:nowrap;font-size:0.78rem;color:var(--text-secondary);">'+doneDate+'</td>'
-      +'<td style="min-width:150px;"><input class="prog-memo-input" id="lmemo-input-'+esc(key)+'" value="'+esc(memoVal)+'" placeholder="'+esc(memoPlaceholder)+'" '+memoDisabled+' onblur="saveLecMemo(\''+esc(key)+'\',this)"><span class="prog-memo-saved" id="lmemo-ind-'+esc(key)+'"></span></td>'
+      +'<td style="min-width:170px;"><div style="display:flex;align-items:center;gap:6px;"><input class="prog-memo-input" style="flex:1;min-width:0;" id="lmemo-input-'+esc(key)+'" value="'+esc(memoVal)+'" placeholder="'+esc(memoPlaceholder)+'" '+memoDisabled+' onblur="saveLecMemo(\''+esc(key)+'\',this)"><span class="prog-memo-saved" id="lmemo-ind-'+esc(key)+'" style="flex:0 0 auto;width:12px;text-align:center;"></span></div></td>'
       +'</tr>';
   }
   function leafRow(key,label,a,indent){ return leafRowHtml(key, esc(label), a, indent); }
@@ -1324,17 +1350,25 @@ function renderProgress(){
     const sa=aggSub[subj]||{total:0,done:0};
     totT+=sa.total; totD+=sa.done;
     if(subjectHasJeol(subj)){
-      const b=pctFull(sa); const gs='background:#eef2fb;font-weight:800;';
-      rows+='<tr class="prog-group">'
-        +'<td class="prog-lec" style="'+gs+'">'+esc(subj)+' <span style="font-weight:600;color:var(--text-muted);">· 절별</span></td>'
-        +'<td class="prog-num" style="'+gs+'">'+sa.total+'</td>'
-        +'<td class="prog-num" style="'+gs+'">'+sa.done+'</td>'
-        +'<td style="'+gs+'"><div class="prog-cell-prog"><div class="prog-bar'+(b.full?' full':'')+'"><span style="width:'+b.pct+'%"></span></div><span class="prog-pct">'+b.pct+'%</span></div></td>'
-        +'<td class="prog-num" style="'+gs+'font-size:0.78rem;">'+firstCompleteDate(sa)+'</td>'
-        +'<td style="'+gs+'"></td></tr>';
       const jm=aggJeol[subj]||{};
-      (typeof JEOL_ORDER!=='undefined'?JEOL_ORDER:[]).forEach(function(code){
-        if(jm[code]){ var clbl=((typeof JEOL_CHAP!=='undefined'&&JEOL_CHAP[code])?'<span style="color:var(--text-muted);font-weight:400;font-size:0.92em;">'+esc(JEOL_CHAP[code])+'</span> · ':'')+((typeof JEOL_NUM!=='undefined'&&JEOL_NUM[code])?esc(JEOL_NUM[code])+' ':'')+esc(JEOL_NAME[code]||code); rows+=leafRowHtml(code,clbl,jm[code],true); }
+      const order=(typeof JEOL_ORDER!=='undefined'?JEOL_ORDER:[]);
+      [{k:'재무',label:'재무회계'},{k:'원가',label:'원가관리회계'},{k:'etc',label:'기타 · 미분류'}].forEach(function(fd){
+        if(filterField!=='all' && fd.k!==filterField) return;
+        const codes=order.filter(function(c){ return jm[c] && jeolField(c)===fd.k; });
+        if(!codes.length) return;
+        let ft=0,fdone=0,ftss=[];
+        codes.forEach(function(c){ ft+=jm[c].total; fdone+=jm[c].done; ftss=ftss.concat(jm[c].tss||[]); });
+        const fb=pctFull({total:ft,done:fdone});
+        // 분야 대구분 바
+        rows+='<tr class="prog-fieldbar"><td>'+esc(subj)+' · '+esc(fd.label)+'</td><td style="text-align:center;">'+ft+'</td><td style="text-align:center;">'+fdone+'</td><td><div class="prog-cell-prog"><div class="prog-bar'+(fb.full?' full':'')+'"><span style="width:'+fb.pct+'%"></span></div><span class="prog-pct" style="color:#fff;">'+fb.pct+'%</span></div></td><td></td><td></td></tr>';
+        // Chapter 구분 바 + 절 행(절은 제N절 이름만)
+        let curChap=null;
+        codes.forEach(function(c){
+          const ch=((typeof JEOL_CHAP!=='undefined')?JEOL_CHAP[c]:'')||'';
+          if(ch!==curChap){ curChap=ch; rows+='<tr class="prog-chapbar"><td colspan="6">'+esc(ch||'(장 미상)')+'</td></tr>'; }
+          const lbl=((typeof JEOL_NUM!=='undefined'&&JEOL_NUM[c])?esc(JEOL_NUM[c])+' ':'')+esc(JEOL_NAME[c]||c);
+          rows+=leafRowHtml(c,lbl,jm[c],true);
+        });
       });
     } else {
       rows+=leafRow(subj,subj,sa,false);
