@@ -19,6 +19,7 @@
   --star-color:#e8a020;
   --radius-sm:6px;--radius-md:10px;--radius-lg:14px;
   --header-h:52px;
+  --rail-width:268px;
 }
 *{box-sizing:border-box;margin:0;padding:0;}
 body{font-family:var(--font-stack);background:var(--body-bg);color:var(--text-primary);min-height:100vh;-webkit-font-smoothing:antialiased;}
@@ -463,6 +464,96 @@ header h1{font-size:1rem;font-weight:700;letter-spacing:-0.02em;line-height:1.2;
   .hdr-select{max-width:118px;font-size:0.7rem;}
   .hdr-user-btn{font-size:0.7rem;padding:5px 7px;}
 }
+
+/* ── RIGHT RAIL ── */
+#right-rail{
+  width:var(--rail-width);min-width:var(--rail-width);flex-shrink:0;
+  position:sticky;top:var(--header-h);height:calc(100vh - var(--header-h));
+  overflow-y:auto;display:flex;flex-direction:column;gap:0;
+  background:var(--sidebar-bg);border-left:1px solid var(--sidebar-border);
+  scrollbar-width:thin;scrollbar-color:#d0d8e4 transparent;
+}
+#right-rail::-webkit-scrollbar{width:5px;}
+#right-rail::-webkit-scrollbar-thumb{background:#d0d8e4;border-radius:10px;}
+
+.rail-section{padding:14px 12px;border-bottom:1px solid var(--sidebar-border);}
+.rail-section:last-child{border-bottom:none;flex:1;display:flex;flex-direction:column;}
+.rail-title{font-size:0.62rem;font-weight:700;letter-spacing:0.09em;text-transform:uppercase;color:var(--text-muted);margin-bottom:10px;display:flex;align-items:center;gap:6px;}
+.rail-title-icon{font-size:0.85rem;}
+
+/* CALCULATOR */
+.calc-display{
+  background:var(--card-bg);border:1.5px solid var(--card-border);border-radius:var(--radius-md);
+  padding:8px 11px;margin-bottom:8px;text-align:right;
+  font-size:1.18rem;font-weight:700;color:var(--text-primary);
+  min-height:44px;word-break:break-all;line-height:1.3;
+  font-family:'SF Mono','Consolas','Menlo',monospace;
+  position:relative;
+}
+.calc-expr{font-size:0.68rem;color:var(--text-muted);font-weight:400;position:absolute;top:6px;left:10px;right:10px;text-align:left;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.calc-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;margin-bottom:8px;}
+.calc-btn{
+  padding:7px 4px;border:1.5px solid var(--card-border);border-radius:var(--radius-sm);
+  background:var(--card-bg);color:var(--text-primary);font-size:0.78rem;font-weight:600;
+  cursor:pointer;font-family:var(--font-stack);transition:all 0.1s;line-height:1.2;text-align:center;
+  user-select:none;-webkit-user-select:none;
+}
+.calc-btn:hover{background:var(--accent-light);border-color:var(--accent);color:var(--accent);}
+.calc-btn:active{transform:scale(0.94);background:var(--accent);color:#fff;border-color:var(--accent);}
+.calc-btn.op{background:var(--accent-light);color:var(--accent);}
+.calc-btn.op:hover{background:var(--accent);color:#fff;}
+.calc-btn.eq{background:var(--accent);color:#fff;border-color:var(--accent);font-size:1rem;}
+.calc-btn.eq:hover{background:var(--accent-hover);}
+.calc-btn.clr{background:#fdf1f0;color:var(--incorrect);border-color:var(--incorrect-border);}
+.calc-btn.clr:hover{background:var(--incorrect);color:#fff;}
+.calc-btn.mem{background:#f5f0e6;color:#7a5020;border-color:#d8c8a8;font-size:0.68rem;}
+.calc-btn.mem:hover{background:#e8d8b0;border-color:#b09060;}
+.calc-btn.fn{background:#f0e8f5;color:#5a3270;border-color:#d0b8e0;font-size:0.72rem;}
+.calc-btn.fn:hover{background:#e0c8f0;border-color:#9a70c0;}
+
+/* 감정평가 Quick계산 */
+.qcalc-section{margin-top:8px;}
+.qcalc-label{font-size:0.63rem;font-weight:700;letter-spacing:0.07em;text-transform:uppercase;color:var(--text-muted);margin-bottom:6px;}
+.qcalc-row{display:flex;flex-direction:column;gap:5px;margin-bottom:7px;padding:8px 9px;background:var(--card-bg);border:1px solid var(--card-border);border-radius:var(--radius-sm);}
+.qcalc-row-title{font-size:0.67rem;font-weight:700;color:var(--chip-text);margin-bottom:4px;}
+.qcalc-inputs{display:flex;gap:4px;flex-wrap:wrap;align-items:center;}
+.qcalc-input{width:60px;padding:4px 6px;border:1.5px solid var(--card-border);border-radius:var(--radius-sm);font-size:0.77rem;font-family:var(--font-stack);color:var(--text-primary);background:#fff;outline:none;text-align:center;}
+.qcalc-input:focus{border-color:var(--accent);}
+.qcalc-input.wide{width:80px;}
+.qcalc-sep{font-size:0.72rem;color:var(--text-muted);}
+.qcalc-compute{padding:4px 9px;background:var(--accent);color:#fff;border:none;border-radius:var(--radius-sm);font-size:0.73rem;font-family:var(--font-stack);font-weight:700;cursor:pointer;transition:background 0.12s;white-space:nowrap;}
+.qcalc-compute:hover{background:var(--accent-hover);}
+.qcalc-result{font-size:0.76rem;color:var(--text-primary);font-weight:700;margin-top:4px;min-height:1.2em;padding:3px 6px;background:var(--accent-light);border-radius:4px;display:none;}
+.qcalc-result.show{display:block;}
+
+/* MEMO */
+.rail-memo{
+  flex:1;width:100%;min-height:120px;border:1.5px solid var(--card-border);border-radius:var(--radius-md);
+  padding:8px 10px;font-size:0.81rem;line-height:1.65;font-family:var(--font-stack);
+  color:var(--text-primary);resize:none;outline:none;
+  background:var(--card-bg);transition:border-color 0.15s;
+}
+.rail-memo:focus{border-color:var(--accent);}
+.memo-saved-hint{font-size:0.63rem;color:var(--text-muted);margin-top:5px;min-height:0.9em;}
+
+/* Right-rail toggle button (mobile) */
+#rail-toggle-btn{
+  display:none;background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.25);
+  color:#fff;padding:6px 10px;border-radius:var(--radius-sm);cursor:pointer;font-size:0.79rem;
+  font-family:var(--font-stack);transition:background 0.15s;white-space:nowrap;
+}
+#rail-toggle-btn:hover{background:rgba(255,255,255,0.2);}
+
+/* Responsive: hide rail on narrow screens, show via toggle */
+@media(max-width:1100px){
+  #right-rail{display:none;position:fixed;right:0;top:var(--header-h);height:calc(100vh - var(--header-h));z-index:150;box-shadow:-4px 0 20px rgba(0,0,0,0.15);}
+  #right-rail.open{display:flex;}
+  #rail-toggle-btn{display:block;}
+}
+@media(max-width:767px){
+  #right-rail{width:min(var(--rail-width),90vw);min-width:0;}
+}
+
 </style>
 </head>
 <body>
@@ -478,6 +569,7 @@ header h1{font-size:1rem;font-weight:700;letter-spacing:-0.02em;line-height:1.2;
     </select>
     <button id="user-switch-btn" class="hdr-user-btn" onclick="showIdentityPrompt()" title="사용자 변경" aria-label="사용자 변경">👤 <span id="hdr-user">선택</span> ▾</button>
     <button id="mobile-sidebar-btn" onclick="toggleSidebar()">☰</button>
+    <button id="rail-toggle-btn" onclick="toggleRightRail()" title="계산기/메모">🧮</button>
   </div>
 </header>
 
@@ -551,6 +643,156 @@ header h1{font-size:1rem;font-weight:700;letter-spacing:-0.02em;line-height:1.2;
     <div id="no-results">해당 조건의 문항이 없습니다.</div>
     <div id="feed"></div>
   </main>
+
+  <!-- RIGHT RAIL -->
+  <aside id="right-rail" aria-label="계산기 및 메모장">
+
+    <!-- ── 계산기 ── -->
+    <div class="rail-section">
+      <div class="rail-title"><span class="rail-title-icon">🧮</span>계산기</div>
+
+      <div class="calc-display" id="calc-display">
+        <div class="calc-expr" id="calc-expr"></div>
+        <span id="calc-val">0</span>
+      </div>
+
+      <!-- 숫자 + 연산 그리드 -->
+      <div class="calc-grid">
+        <!-- Row 1: MC MR M+ M- -->
+        <button class="calc-btn mem" onclick="calcMem('MC')">MC</button>
+        <button class="calc-btn mem" onclick="calcMem('MR')">MR</button>
+        <button class="calc-btn mem" onclick="calcMem('M+')">M+</button>
+        <button class="calc-btn mem" onclick="calcMem('M-')">M−</button>
+        <!-- Row 2: C ⌫ % ÷ -->
+        <button class="calc-btn clr" onclick="calcClear()">C</button>
+        <button class="calc-btn op" onclick="calcDel()">⌫</button>
+        <button class="calc-btn op" onclick="calcPercent()">%</button>
+        <button class="calc-btn op" onclick="calcOp('/')">÷</button>
+        <!-- Row 3: 7 8 9 × -->
+        <button class="calc-btn" onclick="calcDigit('7')">7</button>
+        <button class="calc-btn" onclick="calcDigit('8')">8</button>
+        <button class="calc-btn" onclick="calcDigit('9')">9</button>
+        <button class="calc-btn op" onclick="calcOp('*')">×</button>
+        <!-- Row 4: 4 5 6 − -->
+        <button class="calc-btn" onclick="calcDigit('4')">4</button>
+        <button class="calc-btn" onclick="calcDigit('5')">5</button>
+        <button class="calc-btn" onclick="calcDigit('6')">6</button>
+        <button class="calc-btn op" onclick="calcOp('-')">−</button>
+        <!-- Row 5: 1 2 3 + -->
+        <button class="calc-btn" onclick="calcDigit('1')">1</button>
+        <button class="calc-btn" onclick="calcDigit('2')">2</button>
+        <button class="calc-btn" onclick="calcDigit('3')">3</button>
+        <button class="calc-btn op" onclick="calcOp('+')">+</button>
+        <!-- Row 6: ± 0 . = -->
+        <button class="calc-btn fn" onclick="calcSign()">±</button>
+        <button class="calc-btn" onclick="calcDigit('0')">0</button>
+        <button class="calc-btn" onclick="calcDot()">.</button>
+        <button class="calc-btn eq" onclick="calcEquals()">=</button>
+        <!-- Row 7: x² √ xʸ 1/x -->
+        <button class="calc-btn fn" onclick="calcFn('sq')">x²</button>
+        <button class="calc-btn fn" onclick="calcFn('sqrt')">√</button>
+        <button class="calc-btn fn" onclick="calcOp('^')">xʸ</button>
+        <button class="calc-btn fn" onclick="calcFn('inv')">1/x</button>
+      </div>
+
+      <!-- 감정평가 빠른 계산 -->
+      <div class="qcalc-section">
+        <div class="qcalc-label">감정평가 빠른 계산</div>
+
+        <!-- 현재가치 (1+r)^-n -->
+        <div class="qcalc-row">
+          <div class="qcalc-row-title">현가계수 (1+r)⁻ⁿ</div>
+          <div class="qcalc-inputs">
+            <span class="qcalc-sep">r=</span>
+            <input class="qcalc-input" id="qc-r1" type="number" placeholder="0.05" step="0.001" title="이자율(소수)">
+            <span class="qcalc-sep">n=</span>
+            <input class="qcalc-input" id="qc-n1" type="number" placeholder="5" step="1" title="기간">
+            <button class="qcalc-compute" onclick="qcPVF()">계산</button>
+          </div>
+          <div class="qcalc-result" id="qc-pvf-res"></div>
+        </div>
+
+        <!-- 연금현가계수 -->
+        <div class="qcalc-row">
+          <div class="qcalc-row-title">연금현가계수 [1−(1+r)⁻ⁿ]/r</div>
+          <div class="qcalc-inputs">
+            <span class="qcalc-sep">r=</span>
+            <input class="qcalc-input" id="qc-r2" type="number" placeholder="0.05" step="0.001">
+            <span class="qcalc-sep">n=</span>
+            <input class="qcalc-input" id="qc-n2" type="number" placeholder="5" step="1">
+            <button class="qcalc-compute" onclick="qcPVAF()">계산</button>
+          </div>
+          <div class="qcalc-result" id="qc-pvaf-res"></div>
+        </div>
+
+        <!-- 연금내가계수 -->
+        <div class="qcalc-row">
+          <div class="qcalc-row-title">연금내가계수 [(1+r)ⁿ−1]/r</div>
+          <div class="qcalc-inputs">
+            <span class="qcalc-sep">r=</span>
+            <input class="qcalc-input" id="qc-r3" type="number" placeholder="0.05" step="0.001">
+            <span class="qcalc-sep">n=</span>
+            <input class="qcalc-input" id="qc-n3" type="number" placeholder="5" step="1">
+            <button class="qcalc-compute" onclick="qcFVAF()">계산</button>
+          </div>
+          <div class="qcalc-result" id="qc-fvaf-res"></div>
+        </div>
+
+        <!-- 수익가액 -->
+        <div class="qcalc-row">
+          <div class="qcalc-row-title">수익가액 = 순수익 ÷ 환원율</div>
+          <div class="qcalc-inputs">
+            <span class="qcalc-sep">NOI=</span>
+            <input class="qcalc-input wide" id="qc-noi" type="number" placeholder="1000000">
+            <span class="qcalc-sep">r=</span>
+            <input class="qcalc-input" id="qc-cap" type="number" placeholder="0.05" step="0.001">
+            <button class="qcalc-compute" onclick="qcIncome()">계산</button>
+          </div>
+          <div class="qcalc-result" id="qc-income-res"></div>
+        </div>
+
+        <!-- 평↔㎡ 변환 -->
+        <div class="qcalc-row">
+          <div class="qcalc-row-title">면적 변환 (1평 = 3.305785㎡)</div>
+          <div class="qcalc-inputs">
+            <input class="qcalc-input wide" id="qc-pyeong" type="number" placeholder="평">
+            <span class="qcalc-sep">평</span>
+            <button class="qcalc-compute" onclick="qcArea('p2m')">→㎡</button>
+            <input class="qcalc-input wide" id="qc-sqm" type="number" placeholder="㎡">
+            <span class="qcalc-sep">㎡</span>
+            <button class="qcalc-compute" onclick="qcArea('m2p')">→평</button>
+          </div>
+          <div class="qcalc-result" id="qc-area-res"></div>
+        </div>
+
+        <!-- 감가상각 (정액) -->
+        <div class="qcalc-row">
+          <div class="qcalc-row-title">정액법 감가상각 = (취득가-잔존가)/내용연수</div>
+          <div class="qcalc-inputs">
+            <span class="qcalc-sep">취득=</span>
+            <input class="qcalc-input wide" id="qc-dep-cost" type="number" placeholder="1000">
+            <span class="qcalc-sep">잔존=</span>
+            <input class="qcalc-input" id="qc-dep-resid" type="number" placeholder="0">
+          </div>
+          <div class="qcalc-inputs" style="margin-top:4px">
+            <span class="qcalc-sep">연수=</span>
+            <input class="qcalc-input" id="qc-dep-life" type="number" placeholder="5">
+            <button class="qcalc-compute" onclick="qcDepreciation()">계산</button>
+          </div>
+          <div class="qcalc-result" id="qc-dep-res"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── 메모장 ── -->
+    <div class="rail-section" style="flex:1;display:flex;flex-direction:column;">
+      <div class="rail-title"><span class="rail-title-icon">📝</span>메모장 (스크래치패드)</div>
+      <textarea class="rail-memo" id="rail-memo-ta" placeholder="자유롭게 메모하세요. 자동 저장됩니다."></textarea>
+      <div class="memo-saved-hint" id="memo-saved-hint"></div>
+    </div>
+
+  </aside>
+
 </div>
 
 <div id="progress-view" hidden></div>
@@ -1758,6 +2000,304 @@ function toggleSidebar() {
 
 function buildYearFilter(){var yrs=[...new Set(QUESTIONS.map(q=>q.year))].sort((a,b)=>b-a);var c=document.getElementById('year-btns');if(c)c.innerHTML='<button class="yr-btn active" data-year="all" onclick="setYear(\'all\')">전체</button>'+yrs.map(y=>'<button class="yr-btn" data-year="'+y+'" onclick="setYear(\''+y+'\')">'+y+'</button>').join('');}
 function buildSubjectFilter(){var order=['민법','경제학원론','부동산학원론','감정평가관계법규','회계학'];var subs=[...new Set(QUESTIONS.map(q=>q.curr_lec_no))].sort((a,b)=>(order.indexOf(a)+99)%100-(order.indexOf(b)+99)%100);var sel=document.getElementById('lec-select');if(sel)sel.innerHTML='<option value="all">전체 과목</option>'+subs.map(s=>'<option value="'+s+'">'+esc(s)+'</option>').join('');}
+
+// ═══════════════════════════════════════════════════
+// RIGHT RAIL: CALCULATOR + MEMO
+// ═══════════════════════════════════════════════════
+
+// ── Mobile right-rail toggle ──
+function toggleRightRail() {
+  const rail = document.getElementById('right-rail');
+  if (rail) rail.classList.toggle('open');
+}
+
+// ── Calculator state ──
+const calcState = {
+  cur: '0',       // current display value (string)
+  prev: null,     // previous operand (number)
+  op: null,       // pending operator: '+' '-' '*' '/' '^'
+  justEvaled: false, // after = pressed
+  waitingForOperand: false, // after op pressed, next digit starts fresh
+  mem: 0,         // memory register
+  expr: ''        // expression display
+};
+
+function calcUpdate() {
+  const disp = document.getElementById('calc-val');
+  const exprEl = document.getElementById('calc-expr');
+  if (disp) {
+    // Format: add thousands sep for large numbers, limit decimals
+    let v = calcState.cur;
+    // If it ends with . keep as is; otherwise try to format
+    if (!v.endsWith('.') && !isNaN(parseFloat(v))) {
+      let num = parseFloat(v);
+      if (Math.abs(num) >= 1e15) {
+        v = num.toExponential(6);
+      } else if (v.includes('.')) {
+        // Trim trailing zeros beyond precision
+        v = parseFloat(num.toPrecision(12)).toString();
+      }
+    }
+    disp.textContent = v;
+  }
+  if (exprEl) exprEl.textContent = calcState.expr;
+}
+
+function calcDigit(d) {
+  if (calcState.justEvaled || calcState.waitingForOperand) {
+    calcState.cur = d === '0' ? '0' : d;
+    calcState.justEvaled = false;
+    calcState.waitingForOperand = false;
+    if (calcState.justEvaled) calcState.expr = '';
+  } else if (calcState.cur === '0' && d !== '.') {
+    calcState.cur = d;
+  } else {
+    if (calcState.cur.replace('-','').replace('.','').length >= 15) return;
+    calcState.cur += d;
+  }
+  calcUpdate();
+}
+
+function calcDot() {
+  if (calcState.justEvaled || calcState.waitingForOperand) {
+    calcState.cur = '0.';
+    calcState.justEvaled = false;
+    calcState.waitingForOperand = false;
+    calcUpdate(); return;
+  }
+  if (!calcState.cur.includes('.')) calcState.cur += '.';
+  calcUpdate();
+}
+
+function calcSign() {
+  if (calcState.waitingForOperand) { calcState.cur = '-0'; calcState.waitingForOperand = false; calcUpdate(); return; }
+  if (calcState.cur === '0') return;
+  calcState.cur = calcState.cur.startsWith('-') ? calcState.cur.slice(1) : '-' + calcState.cur;
+  calcUpdate();
+}
+
+function calcDel() {
+  if (calcState.justEvaled) { calcClear(); return; }
+  if (calcState.cur.length <= 1 || (calcState.cur.length === 2 && calcState.cur.startsWith('-'))) {
+    calcState.cur = '0';
+  } else {
+    calcState.cur = calcState.cur.slice(0, -1);
+  }
+  calcUpdate();
+}
+
+function calcClear() {
+  calcState.cur = '0'; calcState.prev = null; calcState.op = null;
+  calcState.justEvaled = false; calcState.expr = '';
+  calcUpdate();
+}
+
+const OP_SYM = {'+':'+', '-':'−', '*':'×', '/':'÷', '^':'ˣ'};
+
+function calcOp(op) {
+  const cur = parseFloat(calcState.cur);
+  if (calcState.op && !calcState.justEvaled && !calcState.waitingForOperand) {
+    // chain: compute previous
+    const res = calcCompute(calcState.prev, cur, calcState.op);
+    calcState.prev = res;
+    calcState.cur = fmtNum(res);
+    calcState.expr = fmtNum(res) + ' ' + (OP_SYM[op]||op);
+  } else {
+    calcState.prev = isNaN(cur) ? 0 : cur;
+    calcState.expr = fmtNum(isNaN(cur) ? 0 : cur) + ' ' + (OP_SYM[op]||op);
+  }
+  calcState.op = op;
+  calcState.justEvaled = false;
+  calcState.waitingForOperand = true;
+  calcUpdate();
+}
+
+function calcEquals() {
+  if (calcState.op === null) return;
+  const cur = parseFloat(calcState.cur);
+  const res = calcCompute(calcState.prev, cur, calcState.op);
+  calcState.expr = calcState.expr + ' ' + fmtNum(cur) + ' =';
+  calcState.cur = fmtNum(res);
+  calcState.prev = null; calcState.op = null; calcState.justEvaled = true;
+  calcUpdate();
+}
+
+function calcCompute(a, b, op) {
+  switch(op) {
+    case '+': return a + b;
+    case '-': return a - b;
+    case '*': return a * b;
+    case '/': return b === 0 ? NaN : a / b;
+    case '^': return Math.pow(a, b);
+    default: return b;
+  }
+}
+
+function calcFn(fn) {
+  let v = parseFloat(calcState.cur);
+  let res;
+  switch(fn) {
+    case 'sq': res = v * v; calcState.expr = fmtNum(v) + '²'; break;
+    case 'sqrt': res = v >= 0 ? Math.sqrt(v) : NaN; calcState.expr = '√' + fmtNum(v); break;
+    case 'inv': res = v === 0 ? NaN : 1 / v; calcState.expr = '1/' + fmtNum(v); break;
+    default: res = v;
+  }
+  calcState.cur = fmtNum(res);
+  calcState.justEvaled = true;
+  calcUpdate();
+}
+
+function calcPercent() {
+  // % = divide by 100 (if no pending op), or multiply prev by (cur/100)
+  let v = parseFloat(calcState.cur);
+  if (calcState.op && calcState.prev !== null) {
+    calcState.cur = fmtNum(calcState.prev * v / 100);
+  } else {
+    calcState.cur = fmtNum(v / 100);
+  }
+  calcUpdate();
+}
+
+function calcMem(action) {
+  const v = parseFloat(calcState.cur);
+  switch(action) {
+    case 'MC': calcState.mem = 0; break;
+    case 'MR': calcState.cur = fmtNum(calcState.mem); calcState.justEvaled = true; calcUpdate(); return;
+    case 'M+': calcState.mem += v; break;
+    case 'M-': calcState.mem -= v; break;
+  }
+  calcUpdate();
+}
+
+function fmtNum(n) {
+  if (isNaN(n)) return 'Error';
+  if (!isFinite(n)) return n > 0 ? '∞' : '-∞';
+  // Avoid floating point noise
+  let s = parseFloat(n.toPrecision(12)).toString();
+  return s;
+}
+
+// Keyboard support for calculator
+document.addEventListener('keydown', function(e) {
+  // Only when focus is NOT in an input/textarea (other than calc area)
+  const tag = document.activeElement ? document.activeElement.tagName : '';
+  const inCalcInput = document.activeElement && document.activeElement.closest('#right-rail') &&
+                      (tag === 'INPUT' || tag === 'TEXTAREA');
+  if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
+  if (e.ctrlKey || e.metaKey || e.altKey) return;
+  const k = e.key;
+  if ('0123456789'.includes(k)) { calcDigit(k); e.preventDefault(); }
+  else if (k === '.') { calcDot(); e.preventDefault(); }
+  else if (k === '+') { calcOp('+'); e.preventDefault(); }
+  else if (k === '-') { calcOp('-'); e.preventDefault(); }
+  else if (k === '*') { calcOp('*'); e.preventDefault(); }
+  else if (k === '/') { calcOp('/'); e.preventDefault(); }
+  else if (k === '^') { calcOp('^'); e.preventDefault(); }
+  else if (k === 'Enter' || k === '=') { calcEquals(); e.preventDefault(); }
+  else if (k === 'Escape') { calcClear(); e.preventDefault(); }
+  else if (k === 'Backspace') { calcDel(); e.preventDefault(); }
+  else if (k === '%') { calcPercent(); e.preventDefault(); }
+});
+
+// ── 감정평가 빠른 계산 ──
+function qcPVF() {
+  const r = parseFloat(document.getElementById('qc-r1').value);
+  const n = parseFloat(document.getElementById('qc-n1').value);
+  const el = document.getElementById('qc-pvf-res');
+  if (isNaN(r) || isNaN(n)) { el.textContent = '값을 입력하세요'; el.classList.add('show'); return; }
+  const res = Math.pow(1 + r, -n);
+  el.textContent = '현가계수 = ' + res.toFixed(6) + '  (PV = FV × ' + res.toFixed(6) + ')';
+  el.classList.add('show');
+  calcState.cur = fmtNum(res); calcState.justEvaled = true; calcUpdate();
+}
+
+function qcPVAF() {
+  const r = parseFloat(document.getElementById('qc-r2').value);
+  const n = parseFloat(document.getElementById('qc-n2').value);
+  const el = document.getElementById('qc-pvaf-res');
+  if (isNaN(r) || isNaN(n) || r === 0) { el.textContent = r === 0 ? 'r≠0 이어야 합니다' : '값을 입력하세요'; el.classList.add('show'); return; }
+  const res = (1 - Math.pow(1 + r, -n)) / r;
+  el.textContent = '연금현가계수 = ' + res.toFixed(6);
+  el.classList.add('show');
+  calcState.cur = fmtNum(res); calcState.justEvaled = true; calcUpdate();
+}
+
+function qcFVAF() {
+  const r = parseFloat(document.getElementById('qc-r3').value);
+  const n = parseFloat(document.getElementById('qc-n3').value);
+  const el = document.getElementById('qc-fvaf-res');
+  if (isNaN(r) || isNaN(n) || r === 0) { el.textContent = r === 0 ? 'r≠0 이어야 합니다' : '값을 입력하세요'; el.classList.add('show'); return; }
+  const res = (Math.pow(1 + r, n) - 1) / r;
+  el.textContent = '연금내가계수 = ' + res.toFixed(6);
+  el.classList.add('show');
+  calcState.cur = fmtNum(res); calcState.justEvaled = true; calcUpdate();
+}
+
+function qcIncome() {
+  const noi = parseFloat(document.getElementById('qc-noi').value);
+  const cap = parseFloat(document.getElementById('qc-cap').value);
+  const el = document.getElementById('qc-income-res');
+  if (isNaN(noi) || isNaN(cap) || cap === 0) { el.textContent = '값을 입력하세요 (환원율≠0)'; el.classList.add('show'); return; }
+  const res = noi / cap;
+  el.textContent = '수익가액 = ' + res.toLocaleString('ko-KR', {maximumFractionDigits:2}) + '원';
+  el.classList.add('show');
+  calcState.cur = fmtNum(res); calcState.justEvaled = true; calcUpdate();
+}
+
+function qcArea(dir) {
+  const el = document.getElementById('qc-area-res');
+  if (dir === 'p2m') {
+    const p = parseFloat(document.getElementById('qc-pyeong').value);
+    if (isNaN(p)) { el.textContent = '평수를 입력하세요'; el.classList.add('show'); return; }
+    const m = p * 3.305785;
+    el.textContent = p + '평 = ' + m.toFixed(4) + '㎡';
+    document.getElementById('qc-sqm').value = m.toFixed(4);
+    calcState.cur = fmtNum(m); calcState.justEvaled = true; calcUpdate();
+  } else {
+    const m = parseFloat(document.getElementById('qc-sqm').value);
+    if (isNaN(m)) { el.textContent = '㎡를 입력하세요'; el.classList.add('show'); return; }
+    const p = m / 3.305785;
+    el.textContent = m + '㎡ = ' + p.toFixed(4) + '평';
+    document.getElementById('qc-pyeong').value = p.toFixed(4);
+    calcState.cur = fmtNum(p); calcState.justEvaled = true; calcUpdate();
+  }
+  el.classList.add('show');
+}
+
+function qcDepreciation() {
+  const cost = parseFloat(document.getElementById('qc-dep-cost').value);
+  const resid = parseFloat(document.getElementById('qc-dep-resid').value) || 0;
+  const life = parseFloat(document.getElementById('qc-dep-life').value);
+  const el = document.getElementById('qc-dep-res');
+  if (isNaN(cost) || isNaN(life) || life <= 0) { el.textContent = '값을 입력하세요'; el.classList.add('show'); return; }
+  const annual = (cost - resid) / life;
+  el.textContent = '연간 감가상각비 = ' + annual.toLocaleString('ko-KR', {maximumFractionDigits:2});
+  el.classList.add('show');
+  calcState.cur = fmtNum(annual); calcState.justEvaled = true; calcUpdate();
+}
+
+// ── MEMO: localStorage with user-aware key ──
+let _memoSaveTimer = null;
+function getMemoKey() {
+  const u = typeof CURRENT_USER !== 'undefined' && CURRENT_USER ? CURRENT_USER : 'anon';
+  return 'appr_scratch_' + u;
+}
+
+function initMemo() {
+  const ta = document.getElementById('rail-memo-ta');
+  if (!ta) return;
+  ta.value = localStorage.getItem(getMemoKey()) || '';
+  ta.addEventListener('input', function() {
+    clearTimeout(_memoSaveTimer);
+    _memoSaveTimer = setTimeout(function() {
+      localStorage.setItem(getMemoKey(), ta.value);
+      const hint = document.getElementById('memo-saved-hint');
+      if (hint) { hint.textContent = '저장됨'; setTimeout(()=>{if(hint)hint.textContent='';}, 1500); }
+    }, 400);
+  });
+}
+
+
 function init() {
   buildYearFilter(); buildSubjectFilter();
   updateHideBtn();
@@ -1774,6 +2314,7 @@ function init() {
   applyFilters();
   // 공유데이터(해설·메모) + 진도/스크랩(서버) 로드 → 렌더. 사용자 미선택 시 "누구세요?".
   sbInit();
+  initMemo();
   Promise.all([sbLoadAll(), sbLoadProgress()]).then(function(){
     applyQFixes(); applyJeolFixes();
     renderFeed(); updateStats(); updateScopeBar(); renderIndex(); setSyncPills();
