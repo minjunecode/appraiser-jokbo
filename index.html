@@ -1055,10 +1055,12 @@ function rebuildSubOptions(){
   ['재무','원가'].forEach(function(f){ var bt=document.getElementById('field-btn-'+f); if(bt) bt.classList.toggle('active', filterField===f); });
   const cnt={};
   QUESTIONS.forEach(function(q){ if(q.curr_lec_no===filterLec && q.subtopic){ if(filterField!=='all' && jeolField(q.subtopic)!==filterField) return; cnt[q.subtopic]=(cnt[q.subtopic]||0)+1; } });
-  let html='<option value="all">전체 절'+(filterField!=='all'?' ('+(filterField==='재무'?'재무회계':'원가관리회계')+')':'')+'</option>';
+  let html='';
   (typeof JEOL_ORDER!=='undefined'?JEOL_ORDER:[]).forEach(function(code){
     if(cnt[code]){ var lbl=((typeof JEOL_NUM!=='undefined'&&JEOL_NUM[code])?JEOL_NUM[code]+' ':'')+(JEOL_NAME[code]||code); html+='<option value="'+code+'">'+esc(lbl)+' ('+cnt[code]+')</option>'; }
   });
+  // '전체 절'은 맨 아래로 (과목 자동선택과 톤 통일; 절 자동선택은 하지 않음)
+  html+='<option value="all">전체 절'+(filterField!=='all'?' ('+(filterField==='재무'?'재무회계':'원가관리회계')+')':'')+'</option>';
   sel.innerHTML=html;
   sel.value=filterSub;
   if(sel.value!==filterSub){ filterSub='all'; sel.value='all'; }
@@ -1081,10 +1083,12 @@ function setTerm(v){
 function rebuildLecOptions(){
   if(!FULL_LEC.length) return;
   // 과목 셀렉터는 헤더(#subject-select)로 이동. 사이드바 #lec-select 는 호환 유지(숨김).
-  let html='<option value="all">전체 과목</option>';
+  // '전체 과목'은 맨 아래로 — 첫 진입 시 첫 과목이 기본 선택되어 전체 렌더 렉을 방지한다.
+  let html='';
   FULL_LEC.forEach(function(r){
     html+='<option value="'+r.key+'">'+esc(r.label)+'</option>';
   });
+  html+='<option value="all">전체 과목</option>';
   const hdr=document.getElementById('subject-select');
   if(hdr){ hdr.innerHTML=html; hdr.value=filterLec; if(hdr.value!==filterLec){ filterLec='all'; hdr.value='all'; } }
   const sel=document.getElementById('lec-select');
@@ -2048,7 +2052,7 @@ function toggleSidebar() {
 
 
 function buildYearFilter(){var yrs=[...new Set(QUESTIONS.map(q=>q.year))].sort((a,b)=>b-a);var c=document.getElementById('year-btns');if(c)c.innerHTML='<button class="yr-btn active" data-year="all" onclick="setYear(\'all\')">전체</button>'+yrs.map(y=>'<button class="yr-btn" data-year="'+y+'" onclick="setYear(\''+y+'\')">'+y+'</button>').join('');}
-function buildSubjectFilter(){var order=['민법','경제학원론','부동산학원론','감정평가관계법규','회계학'];var subs=[...new Set(QUESTIONS.map(q=>q.curr_lec_no))].sort((a,b)=>(order.indexOf(a)+99)%100-(order.indexOf(b)+99)%100);var sel=document.getElementById('lec-select');if(sel)sel.innerHTML='<option value="all">전체 과목</option>'+subs.map(s=>'<option value="'+s+'">'+esc(s)+'</option>').join('');}
+function buildSubjectFilter(){var order=['민법','경제학원론','부동산학원론','감정평가관계법규','회계학'];var subs=[...new Set(QUESTIONS.map(q=>q.curr_lec_no))].sort((a,b)=>(order.indexOf(a)+99)%100-(order.indexOf(b)+99)%100);var sel=document.getElementById('lec-select');if(sel)sel.innerHTML=subs.map(s=>'<option value="'+s+'">'+esc(s)+'</option>').join('')+'<option value="all">전체 과목</option>';}
 
 // ═══════════════════════════════════════════════════
 // RIGHT RAIL: CALCULATOR + MEMO
@@ -2360,6 +2364,9 @@ function init() {
   updateHideBtn();
   updateUserPanel();
   FULL_LEC=lecRoster();                 // 전체 강의 로스터 캡처(드롭다운 재구성 전)
+  // 첫 진입(또는 저장 필터가 '전체 과목')이면 첫 과목을 기본 선택 — 전체 수천 문항 렌더 렉 방지.
+  // 사용자가 드롭다운 맨 아래 '전체 과목'을 명시 선택했을 때만 setLecture('all')로 전체.
+  if(filterLec==='all' && FULL_LEC.length){ filterLec=FULL_LEC[0].key; filterSub='all'; filterField='all'; }
   const termSel=document.getElementById('term-select'); if(termSel) termSel.value=filterTerm;
   rebuildLecOptions();                   // 현재 과목에 맞춰 강의 드롭다운 구성
   document.querySelectorAll('.yr-btn').forEach(b=>b.classList.toggle('active',b.dataset.year===filterYear));
