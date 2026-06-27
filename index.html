@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>감정평가사 기출 퀴즈</title>
+<link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css" />
 <style>
 :root {
   --header-bg:#2c3e5d;--header-text:#fff;--body-bg:#FAFAF8;
@@ -14,7 +15,7 @@
   --card-bg:#ffffff;--card-border:#e0dbd4;--card-shadow:0 1px 4px rgba(60,50,40,0.07);
   --text-primary:#2c3e5d;--text-secondary:#555555;--text-muted:#9a958c;
   --chip-bg:#e8f0f8;--chip-text:#2c5080;
-  --font-stack:'Apple SD Gothic Neo','Nanum Gothic','Malgun Gothic','Noto Sans KR',sans-serif;
+  --font-stack:'Pretendard Variable','Pretendard','Apple SD Gothic Neo','Nanum Gothic','Malgun Gothic','Noto Sans KR',sans-serif;
   --sidebar-width:296px;
   --star-color:#e8a020;
   --radius-sm:6px;--radius-md:10px;--radius-lg:14px;
@@ -229,6 +230,8 @@ header h1{font-size:1rem;font-weight:700;letter-spacing:-0.02em;line-height:1.2;
   border:1px solid #d0dce8;padding:5px 10px;text-align:center;background:#f7fafd;
 }
 .stem-table tr:nth-child(even) td{background:#eef4fa;}
+/* 보기 나열(ㄱㄴㄷ·제목 등 표 아닌 stem_table 텍스트) — 표 구분선 버그 수정과 함께 추가 */
+.stem-lines{margin-bottom:14px;padding:11px 14px;background:#f7fafd;border:1px solid #d0dce8;border-radius:6px;line-height:1.85;font-size:0.85rem;color:var(--text-primary);}
 /* image */
 .q-image{margin-bottom:14px;text-align:center;}
 .q-image img{max-width:100%;max-height:320px;border-radius:var(--radius-sm);border:1px solid var(--card-border);object-fit:contain;background:#f4f6f8;cursor:zoom-in;transition:filter 0.12s;}
@@ -931,25 +934,34 @@ function esc(s) {
 
 function mdTableToHtml(md) {
   if(!md) return '';
+  // ★버그수정: 기존엔 2번째 줄을 무조건 표 구분선으로 보고 제거(filter i!==1) → 보기 나열(ㄱ\nㄴ\nㄷ)·제목+표에서 항목 사라짐.
+  // 줄을 구분선/텍스트/표행으로 정확히 분류: '|' 없는 줄=텍스트(제목·보기), 구분선(|---|)만 제거, '|' 있는 줄=표행.
   const lines = md.trim().split('\n').filter(l=>l.trim());
-  const rows = [];
+  const textLines = [];   // | 없는 줄(제목·보기 나열)
+  const tblRows = [];     // | 있는 표 행
   for(const line of lines) {
-    const cells = line.split('|').map(c=>c.trim()).filter((cell,i,a)=>!(i===0&&cell===''||i===a.length-1&&cell===''));
-    if(cells.length) rows.push(cells);
+    if(/-/.test(line) && /^[\s|:\-]+$/.test(line)) continue;   // markdown 표 구분선(|---|, :--:) 제거
+    if(line.includes('|')) {
+      const cells = line.split('|').map(c=>c.trim()).filter((cell,i,a)=>!(i===0&&cell==='')&&!(i===a.length-1&&cell===''));
+      if(cells.length) tblRows.push(cells);
+    } else {
+      textLines.push(line);
+    }
   }
-  if(rows.length<2) return '<pre>'+esc(md)+'</pre>';
-  const filtered = rows.filter((_,i)=>i!==1);
-  if(!filtered.length) return '';
-  let html='<table class="stem-table"><thead><tr>';
-  for(const cell of filtered[0]) html+='<th>'+esc(cell)+'</th>';
-  html+='</tr></thead><tbody>';
-  for(const row of filtered.slice(1)) {
-    html+='<tr>';
-    for(const cell of row) html+='<td>'+esc(cell)+'</td>';
-    html+='</tr>';
+  let html='';
+  if(textLines.length) html+='<div class="stem-lines">'+textLines.map(l=>esc(l)).join('<br>')+'</div>';
+  if(tblRows.length) {
+    html+='<table class="stem-table"><thead><tr>';
+    for(const cell of tblRows[0]) html+='<th>'+esc(cell)+'</th>';
+    html+='</tr></thead><tbody>';
+    for(const row of tblRows.slice(1)) {
+      html+='<tr>';
+      for(const cell of row) html+='<td>'+esc(cell)+'</td>';
+      html+='</tr>';
+    }
+    html+='</tbody></table>';
   }
-  html+='</tbody></table>';
-  return html;
+  return html || '<pre>'+esc(md)+'</pre>';
 }
 
 function saveAnswers(){ try{localStorage.setItem(LS_ANSWERS,JSON.stringify(savedAnswers));}catch(e){} }
@@ -1187,6 +1199,8 @@ function applyQFixes(){
 // ── 오분류(절 재분류) ──
 // 'Not found' 특수 절 등록: '99. Not found'
 (function(){ if(typeof JEOL_NAME!=='undefined'){ JEOL_NAME['NF']='Not found'; if(typeof JEOL_NUM!=='undefined') JEOL_NUM['NF']='99.'; if(typeof JEOL_CHAP!=='undefined') JEOL_CHAP['NF']='기타'; if(typeof JEOL_ORDER!=='undefined' && JEOL_ORDER.indexOf('NF')<0) JEOL_ORDER.push('NF'); } })();
+// ★관계법규 76강을 PART(법률)별 그룹으로 — 진척도에서 '기타' 대신 9개 법률로 묶임
+if(typeof JEOL_CHAP!=='undefined') Object.assign(JEOL_CHAP, {"01-01":"PART 01 공간정보의 구축 및 관리 등에 관한 법률","01-02":"PART 01 공간정보의 구축 및 관리 등에 관한 법률","01-03":"PART 01 공간정보의 구축 및 관리 등에 관한 법률","01-04":"PART 01 공간정보의 구축 및 관리 등에 관한 법률","01-05":"PART 01 공간정보의 구축 및 관리 등에 관한 법률","01-06":"PART 01 공간정보의 구축 및 관리 등에 관한 법률","01-07":"PART 01 공간정보의 구축 및 관리 등에 관한 법률","02-01":"PART 02 부동산등기법","02-02":"PART 02 부동산등기법","02-03":"PART 02 부동산등기법","02-03-1":"PART 02 부동산등기법","02-03-2":"PART 02 부동산등기법","02-03-3":"PART 02 부동산등기법","02-04":"PART 02 부동산등기법","02-05":"PART 02 부동산등기법","03-01":"PART 03 동산·채권 등의 담보에 관한 법률","03-02":"PART 03 동산·채권 등의 담보에 관한 법률","03-02-1":"PART 03 동산·채권 등의 담보에 관한 법률","03-03":"PART 03 동산·채권 등의 담보에 관한 법률","03-04":"PART 03 동산·채권 등의 담보에 관한 법률","04-01":"PART 04 부동산 가격공시에 관한 법률","04-02":"PART 04 부동산 가격공시에 관한 법률","04-03":"PART 04 부동산 가격공시에 관한 법률","04-04":"PART 04 부동산 가격공시에 관한 법률","04-05":"PART 04 부동산 가격공시에 관한 법률","04-06":"PART 04 부동산 가격공시에 관한 법률","04-07":"PART 04 부동산 가격공시에 관한 법률","04-08":"PART 04 부동산 가격공시에 관한 법률","04-09":"PART 04 부동산 가격공시에 관한 법률","04-10":"PART 04 부동산 가격공시에 관한 법률","04-11":"PART 04 부동산 가격공시에 관한 법률","05-01":"PART 05 감정평가 및 감정평가사에 관한 법률","05-02":"PART 05 감정평가 및 감정평가사에 관한 법률","05-03":"PART 05 감정평가 및 감정평가사에 관한 법률","05-04":"PART 05 감정평가 및 감정평가사에 관한 법률","05-05":"PART 05 감정평가 및 감정평가사에 관한 법률","05-06":"PART 05 감정평가 및 감정평가사에 관한 법률","05-07":"PART 05 감정평가 및 감정평가사에 관한 법률","05-08":"PART 05 감정평가 및 감정평가사에 관한 법률","05-09":"PART 05 감정평가 및 감정평가사에 관한 법률","05-10":"PART 05 감정평가 및 감정평가사에 관한 법률","06-01":"PART 06 국토의 계획 및 이용에 관한 법률","06-02":"PART 06 국토의 계획 및 이용에 관한 법률","06-03":"PART 06 국토의 계획 및 이용에 관한 법률","06-04":"PART 06 국토의 계획 및 이용에 관한 법률","06-05":"PART 06 국토의 계획 및 이용에 관한 법률","06-06":"PART 06 국토의 계획 및 이용에 관한 법률","06-07":"PART 06 국토의 계획 및 이용에 관한 법률","06-08":"PART 06 국토의 계획 및 이용에 관한 법률","06-09":"PART 06 국토의 계획 및 이용에 관한 법률","06-10":"PART 06 국토의 계획 및 이용에 관한 법률","06-11":"PART 06 국토의 계획 및 이용에 관한 법률","06-12":"PART 06 국토의 계획 및 이용에 관한 법률","06-13":"PART 06 국토의 계획 및 이용에 관한 법률","06-14":"PART 06 국토의 계획 및 이용에 관한 법률","06-15":"PART 06 국토의 계획 및 이용에 관한 법률","07-01":"PART 07 국유재산법","07-02":"PART 07 국유재산법","07-03":"PART 07 국유재산법","07-04":"PART 07 국유재산법","07-05":"PART 07 국유재산법","07-06":"PART 07 국유재산법","07-07":"PART 07 국유재산법","07-08":"PART 07 국유재산법","08-01":"PART 08 건축법","08-02":"PART 08 건축법","08-03":"PART 08 건축법","08-04":"PART 08 건축법","08-05":"PART 08 건축법","08-06":"PART 08 건축법","08-07":"PART 08 건축법","09-01":"PART 09 도시 및 주거환경정비법","09-02":"PART 09 도시 및 주거환경정비법","09-03":"PART 09 도시 및 주거환경정비법","09-04":"PART 09 도시 및 주거환경정비법","09-05":"PART 09 도시 및 주거환경정비법"});
 const QSUB_ORIG = {};  // {qid: 원래 subtopic} 백업
 // 서버에 저장된 __jeolfix__ 항목을 QUESTIONS.subtopic 에 오버라이드
 function applyJeolFixes(){
