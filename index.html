@@ -1762,10 +1762,16 @@ function setSyncPills(){
 async function sbLoadProgress(){
   if(!SB) return;
   try{
-    const res=await SB.from('progress').select('uname,qid,sel,correct,scrap,updated_at');
-    if(res.error) throw res.error;
+    // ★페이지네이션: Supabase 기본 1000행 제한으로 진도 truncate 방지(1000행씩 끝까지 로드)
+    let _rows=[], _from=0; const _PAGE=1000;
+    while(true){
+      const res=await SB.from('progress').select('uname,qid,sel,correct,scrap,updated_at').range(_from,_from+_PAGE-1);
+      if(res.error) throw res.error;
+      const _b=res.data||[]; _rows=_rows.concat(_b);
+      if(_b.length<_PAGE) break; _from+=_PAGE;
+    }
     savedAnswers={}; allScraps={}; savedScraps={};
-    (res.data||[]).forEach(function(r){
+    _rows.forEach(function(r){
       if(r.uname===CURRENT_USER){
         if(r.sel&&r.sel.length) savedAnswers[r.qid]={sel:r.sel,correct:!!r.correct,ts:(r.updated_at?Date.parse(r.updated_at):null)};
         if(r.scrap) savedScraps[r.qid]=true;
